@@ -1,6 +1,8 @@
 namespace AngleSharp.Js.Dom
 {
     using AngleSharp.Attributes;
+    using AngleSharp.Browser;
+    using AngleSharp.Scripting;
     using AngleSharp.Dom;
     using AngleSharp.Io;
     using AngleSharp.Text;
@@ -38,7 +40,11 @@ namespace AngleSharp.Js.Dom
         [DomName("parseFromString")]
         public IDocument Parse(String str, String type)
         {
-            var ctx = _window?.Document.Context;
+            // Parsing creates an inert document. It cannot wait on the active window's
+            // event loop while that same loop is executing this synchronous call.
+            var configuration = new Configuration(_window.Document.Context.OriginalServices)
+                .Without<IScriptingService>().Without<IEventLoop>().Without<IAttributeObserver>();
+            var ctx = BrowsingContext.New(configuration);
             var factory = ctx?.GetService<IDocumentFactory>() ?? throw new DomException(DomError.NotSupported);
 
             using (var content = new MemoryStream(TextEncoding.Utf8.GetBytes(str)))

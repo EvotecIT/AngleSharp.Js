@@ -31,6 +31,15 @@ var assert = doc.querySelector('span').textContent;";
         }
 
         [Test]
+        public async Task DomParserHtmlIsInertAndDoesNotReplaceTheActiveDocument()
+        {
+            var script = @"var active=document;
+var doc=new DOMParser().parseFromString('<body onload=""window.ran=true""><script>window.ran=true</scr'+'ipt><p>Parsed</p>', 'text/html');
+var assert=String(document===active && typeof ran==='undefined' && doc.URL===document.URL && doc.querySelector('p').textContent==='Parsed');";
+            Assert.AreEqual("true", await RunScriptComponent(script));
+        }
+
+        [Test]
         public async Task DomParserShouldWorkWithXml()
         {
             var script = @"var xmlSource = '<parsererror xmlns=""http://www.mozilla.org/newlayout/xml/parsererror.xml"">(error description)<sourcetext></sourcetext></parsererror>';
