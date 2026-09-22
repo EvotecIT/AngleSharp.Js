@@ -16,13 +16,15 @@ namespace AngleSharp.Js.Tests
         [TestCase("var s=Symbol('key');d[s]=42;JSON.stringify([d[s],Object.keys(d),Reflect.ownKeys(d).includes(s),delete d[s],s in d])", "[42,[],true,true,false]")]
         [TestCase("try{d.first=Symbol()}catch(e){e.name}", "TypeError")]
         [TestCase("Object.defineProperty(d,'first',{value:'1'});JSON.stringify([d.first,Object.keys(d),Reflect.defineProperty(d,'other',{get:()=>1}),Reflect.preventExtensions(d)])", "[\"1\",[\"first\"],false,false]")]
+        [TestCase("d.__proto__='attribute';var receiver={},proto={};Reflect.set(d,'__proto__',proto,receiver);JSON.stringify([Object.getPrototypeOf(receiver)===proto,Object.hasOwn(receiver,'__proto__'),d.__proto__])", "[true,false,\"attribute\"]")]
+        [TestCase("d.first='attribute';Object.setPrototypeOf(d,null);var receiver={first:1};var set=Reflect.set(d,'first',2,receiver);var added=Reflect.set(d,'second',3,receiver);Object.freeze(receiver);JSON.stringify([set,added,receiver.first,receiver.second,Reflect.set(d,'first',4,receiver),d.first])", "[true,true,2,3,false,\"attribute\"]")]
         public async Task DatasetNamedPropertiesFollowTheLiveDomContract(string script, string expected)
         {
             using var context = BrowsingContext.New(Configuration.Default.WithJs());
             var document = await context.OpenAsync(response => response.Content("<body></body>")).ConfigureAwait(false);
             var engine = context.GetService<JsScriptingService>().GetOrCreateJint(document);
-            engine.Execute("var d=document.body.dataset");
-            var result = engine.Evaluate(script).ToString();
+            var result = engine.Evaluate("(function(){var d=document.body.dataset;return eval(" +
+                Newtonsoft.Json.JsonConvert.SerializeObject(script) + ");})()").ToString();
             Assert.AreEqual(expected, result);
         }
     }

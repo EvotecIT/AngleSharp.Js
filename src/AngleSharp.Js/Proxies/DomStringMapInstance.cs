@@ -67,13 +67,39 @@ namespace AngleSharp.Js
 
         public override Boolean Set(JsValue property, JsValue value, JsValue receiver)
         {
-            if (!property.IsSymbol() && ReferenceEquals(receiver, this))
+            if (property.IsSymbol())
+            {
+                return base.Set(property, value, receiver);
+            }
+
+            if (ReferenceEquals(receiver, this))
             {
                 SetNamedValue(property, value);
                 return true;
             }
 
-            return base.Set(property, value, receiver);
+            // A distinct receiver uses ordinary lookup with named properties ignored.
+            // String properties live in the DOM map, so continue at the prototype.
+            if (Prototype != null)
+            {
+                return Prototype.Set(property, value, receiver);
+            }
+
+            if (receiver is ObjectInstance target)
+            {
+                var descriptor = target.GetOwnProperty(property);
+                if (descriptor == PropertyDescriptor.Undefined)
+                {
+                    return target.CreateDataProperty(property, value);
+                }
+
+                if (descriptor.IsDataDescriptor() && descriptor.Writable)
+                {
+                    return target.DefineOwnProperty(property, new PropertyDescriptor(value, PropertyFlag.None));
+                }
+            }
+
+            return false;
         }
 
         public override Boolean DefineOwnProperty(JsValue property, PropertyDescriptor descriptor)
