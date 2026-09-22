@@ -104,7 +104,7 @@ namespace AngleSharp.Dom
         /// <returns>A task that is finished when the document is available.</returns>
         public static async Task<IDocument> WaitUntilAvailable(this Task<IDocument> documentTask, CancellationToken cancellation = default)
         {
-            var document = await documentTask.ConfigureAwait(false);
+            var document = await WithCancellation(documentTask, cancellation).ConfigureAwait(false);
             await document.WaitUntilAvailable(cancellation).ConfigureAwait(false);
             return document;
         }
@@ -119,15 +119,45 @@ namespace AngleSharp.Dom
         /// <returns>A task that is finished when the document is available.</returns>
         public static async Task<IDocument> WaitUntilAvailable(this IDocument document, CancellationToken cancellation = default)
         {
-            if (document.ReadyState != DocumentReadyState.Complete)
+            var ready = new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var loop = document.Context.GetService<IEventLoop>();
+            DomEventHandler changed = (_, __) =>
             {
-                var abort = new TaskCompletionSource<object>();
-                cancellation.Register(() => abort.TrySetCanceled());
-                await Task.WhenAny(document.AwaitEventAsync("load"), abort.Task).ConfigureAwait(false);
+                if (document.ReadyState == DocumentReadyState.Complete) ready.TrySetResult(true);
+            };
+
+            // Subscribe and check on the document's loop so completion cannot fall
+            // between them. Readiness does not depend on the target of the load event.
+            loop.Enqueue(() =>
+            {
+                if (cancellation.IsCancellationRequested) return;
+                document.ReadyStateChanged += changed;
+                changed(document, null);
+            }, TaskPriority.Critical);
+
+            try
+            {
+                await WithCancellation(ready.Task, cancellation).ConfigureAwait(false);
+            }
+            finally
+            {
+                loop.Enqueue(() => document.ReadyStateChanged -= changed, TaskPriority.Critical);
             }
 
-            await document.WhenStable().ConfigureAwait(false);
+            await WithCancellation(document.WhenStable(), cancellation).ConfigureAwait(false);
             return document;
+        }
+
+        private static async Task<T> WithCancellation<T>(Task<T> task, CancellationToken cancellation)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (!cancellation.CanBeCanceled) return await task.ConfigureAwait(false);
+            var abort = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using (cancellation.Register(() => abort.TrySetCanceled(cancellation)))
+            {
+                var completed = await Task.WhenAny(task, abort.Task).ConfigureAwait(false);
+                return await completed.ConfigureAwait(false);
+            }
         }
     }
 }

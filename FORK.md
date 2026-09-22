@@ -21,3 +21,7 @@ dotnet test src/AngleSharp.Js.Tests/AngleSharp.Js.Tests.csproj -f net10.0
 Qualify the standalone binding tests and the consuming runtime before updating an
 OfficeIMO revision pin. Fork builds are not official AngleSharp.Js releases.
 Do not publish packages under upstream package identities.
+
+Document availability follows `readystatechange` rather than relying on a document
+`load` event. Subscription and completion checks run on the document event loop,
+and cancellation applies to document creation, readiness, and stabilization waits.

@@ -2,6 +2,8 @@
 
 Development fork.
 
+- Fixed document availability waits across lifecycle event targets and propagated cancellation.
+
 - Added engine-creation configuration and DOM enum constants; see FORK.md.
 - Preserved DOM node identity through SameObject properties.
 - Corrected NodeList prototype methods and HTMLCollection exposure.
