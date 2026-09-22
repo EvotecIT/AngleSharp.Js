@@ -32,3 +32,22 @@ DOM exception translation. Symbols remain ordinary properties. The standalone
 suite qualifies binding behavior against the official AngleSharp dependency;
 camel-case conversion and invalid attribute names additionally require the
 AngleSharp core fork and are qualified by OfficeIMO's `RuntimeDatasetTests`.
+
+`BeforeUnloadEvent` supplies the legacy string `returnValue` and the specialized
+nullable-string result contract for `onbeforeunload`. Body properties and inline
+attributes share the window handler; replacing a handler keeps its listener order.
+Navigation decisions and confirmation UI belong to the host.
+
+The native window subscription requires the AngleSharp core correction that maps
+`EventNames.Unloading` to `beforeunload`. Qualify this combined contract with the
+core fork source, including when its correction is not in the official package:
+
+```sh
+dotnet test src/AngleSharp.Js.Tests/AngleSharp.Js.Tests.csproj -f net10.0 \
+  -p:AngleSharpTestProject=/path/to/AngleSharp/src/AngleSharp/AngleSharp.Core.csproj
+```
+
+Without that source reference, the published core package's event-name defect
+still fails the new window `beforeunload` integration tests. The JS library itself
+continues to compile against the official core API; no host workaround changes
+the native subscription name.
