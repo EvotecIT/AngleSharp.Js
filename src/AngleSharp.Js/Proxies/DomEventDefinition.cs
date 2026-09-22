@@ -49,7 +49,7 @@ namespace AngleSharp.Js
         public JsValue GetHandler(JsValue thisObject, JsValue[] arguments)
         {
             var node = GetNode(thisObject);
-            if (_name == "onbeforeunload" && node?.Value is IHtmlBodyElement body)
+            if ((_name == "onbeforeunload" || _name == "onload") && node?.Value is IHtmlBodyElement body)
             {
                 return body.Owner?.DefaultView?.Document == body.Owner
                     ? node.Instance.Window.Get(_name)
@@ -64,7 +64,7 @@ namespace AngleSharp.Js
             var node = GetNode(thisObject);
             var value = arguments.Length > 0 ? arguments[0] : JsValue.Undefined;
 
-            if (_name == "onbeforeunload" && node?.Value is IHtmlBodyElement body)
+            if ((_name == "onbeforeunload" || _name == "onload") && node?.Value is IHtmlBodyElement body)
             {
                 if (body.Owner?.DefaultView?.Document == body.Owner)
                 {

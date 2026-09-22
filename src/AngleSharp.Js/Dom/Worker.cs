@@ -5,6 +5,7 @@ namespace AngleSharp.Js.Dom
     using AngleSharp.Dom;
     using AngleSharp.Dom.Events;
     using AngleSharp.Io;
+    using AngleSharp.Html.Parser;
     using AngleSharp.Text;
     using AngleSharp.Scripting;
     using System;
@@ -181,7 +182,11 @@ namespace AngleSharp.Js.Dom
 
         private void InitializeWorker(Url sourceUrl)
         {
-            _workerDocument = _workerContext.OpenAsync(request => request.Content("<!doctype html>")).GetAwaiter().GetResult();
+            // This backing document initializes the worker realm; it is not a navigation.
+            // Do not wait for lifecycle tasks on the loop that is running this callback.
+            _workerDocument = new HtmlParser(new HtmlParserOptions { IsScripting = false }, _workerContext)
+                .ParseDocument("<!doctype html>");
+            _workerContext.Active = _workerDocument;
             WindowExtensions.RegisterWorkerWindow(_workerDocument.DefaultView, this);
             var source = FetchWorkerScript(sourceUrl);
             _scripting.EvaluateScript(_workerDocument, WorkerBootstrap, MimeTypeNames.DefaultJavaScript, sourceUrl.Href);

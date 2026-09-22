@@ -18,7 +18,7 @@ namespace AngleSharp.Js.Tests
         {
             var service = new JsScriptingService();
             var cfg = Configuration.Default.With(service).WithEventLoop();
-            var html = "<!doctype html><div id=result></div><script>document.addEventListener('load', function () { document.querySelector('#result').textContent = 'done'; }, false);</script>";
+            var html = "<!doctype html><div id=result></div><script>window.addEventListener('load', function () { document.querySelector('#result').textContent = 'done'; }, false);</script>";
             var document = await BrowsingContext.New(cfg).OpenAsync(m => m.Content(html))
                 .WhenStable();
             var div = document.QuerySelector("#result");

@@ -47,7 +47,13 @@ dotnet test src/AngleSharp.Js.Tests/AngleSharp.Js.Tests.csproj -f net10.0 \
   -p:AngleSharpTestProject=/path/to/AngleSharp/src/AngleSharp/AngleSharp.Core.csproj
 ```
 
-Without that source reference, the published core package's event-name defect
+Without that source reference, the configured official AngleSharp 1.8.0 package's event-name defect
 still fails the new window `beforeunload` integration tests. The JS library itself
 continues to compile against the official core API; no host workaround changes
 the native subscription name.
+
+HTML `DOMParser` documents use an inert context without the active script engine,
+event loop, or inline-handler observers. Worker realm setup parses its backing
+document synchronously instead of waiting for navigation lifecycle tasks on its
+own loop. Body `onload` handlers target the window, matching the core fork's load
+lifecycle. These paths are included in the combined provider test command above.

@@ -109,7 +109,11 @@ namespace AngleSharp.Js.Dom
                     var jint = engine.Jint;
                     var instance = jint.Intrinsics.Function.Construct(new JsValue[] { "event", value }, JsValue.Undefined);
 
-                    if (instance is Function functor)
+                    if (element is IHtmlBodyElement && eventName == EventNames.Load)
+                    {
+                        engine.GetDomNode(element).Set("onload", value == null ? JsValue.Null : instance);
+                    }
+                    else if (instance is Function functor)
                     {
                         element.AddEventListener(eventName, functor.ToListener(engine));
                     }
