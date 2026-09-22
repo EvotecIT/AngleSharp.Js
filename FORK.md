@@ -25,3 +25,10 @@ Do not publish packages under upstream package identities.
 Document availability follows `readystatechange` rather than relying on a document
 `load` event. Subscription and completion checks run on the document event loop,
 and cancellation applies to document creation, readiness, and stabilization waits.
+
+`DOMStringMap` has a dedicated live named-property binding: enumerable data
+properties, deletion, inherited-name overrides, JavaScript value conversion and
+DOM exception translation. Symbols remain ordinary properties. The standalone
+suite qualifies binding behavior against the official AngleSharp dependency;
+camel-case conversion and invalid attribute names additionally require the
+AngleSharp core fork and are qualified by OfficeIMO's `RuntimeDatasetTests`.
