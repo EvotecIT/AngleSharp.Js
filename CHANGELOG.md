@@ -3,6 +3,8 @@
 Development fork.
 
 - Added engine-creation configuration and DOM enum constants; see FORK.md.
+- Preserved DOM node identity through SameObject properties.
+- Corrected NodeList prototype methods and HTMLCollection exposure.
 
 # 1.1.0
 
