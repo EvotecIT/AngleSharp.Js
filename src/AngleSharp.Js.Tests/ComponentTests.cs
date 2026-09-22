@@ -36,7 +36,7 @@ var assert = doc.querySelector('span').textContent;";
             var script = @"var active=document;
 var doc=new DOMParser().parseFromString('<body onload=""window.ran=true""><script>window.ran=true</scr'+'ipt><p>Parsed</p>', 'text/html');
 var assert=String(document===active && typeof ran==='undefined' && doc.URL===document.URL && doc.querySelector('p').textContent==='Parsed');";
-            Assert.AreEqual("true", await RunScriptComponent(script));
+            Assert.AreEqual("true", await RunScriptComponent(script).ConfigureAwait(false));
         }
 
         [Test]

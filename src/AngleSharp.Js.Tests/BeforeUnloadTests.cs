@@ -6,6 +6,7 @@ namespace AngleSharp.Js.Tests
     using AngleSharp.Scripting;
     using Jint;
     using NUnit.Framework;
+    using System;
     using System.Threading.Tasks;
 
     [TestFixture]
@@ -18,7 +19,7 @@ namespace AngleSharp.Js.Tests
         [TestCase("null", false, "")]
         [TestCase("undefined", false, "")]
         [TestCase("({toString(){return 'converted'}})", true, "converted")]
-        public async Task HandlerUsesNullableStringReturnContract(string expression, bool canceled, string message)
+        public async Task HandlerUsesNullableStringReturnContract(String expression, Boolean canceled, String message)
         {
             using var context = BrowsingContext.New(Configuration.Default.WithJs());
             var document = await context.OpenAsync(r => r.Content("<body></body>")).ConfigureAwait(false);
@@ -53,7 +54,7 @@ namespace AngleSharp.Js.Tests
         [TestCase("null", "null")]
         [TestCase("undefined", "undefined")]
         [TestCase("({toString(){return 'converted'}})", "converted")]
-        public async Task LegacyReturnValueUsesDomStringConversion(string expression, string expected)
+        public async Task LegacyReturnValueUsesDomStringConversion(String expression, String expected)
         {
             using var context = BrowsingContext.New(Configuration.Default.WithJs());
             var document = await context.OpenAsync(r => r.Content("<body></body>")).ConfigureAwait(false);
@@ -94,7 +95,7 @@ namespace AngleSharp.Js.Tests
 
         [TestCase("onbeforeunload")]
         [TestCase("onload")]
-        public async Task BodyHandlersUseTheirOwningActiveWindow(string property)
+        public async Task BodyHandlersUseTheirOwningActiveWindow(String property)
         {
             using var context = BrowsingContext.New(Configuration.Default.WithJs());
             var document = await context.OpenAsync(r => r.Content("<body></body>")).ConfigureAwait(false);
@@ -111,7 +112,10 @@ namespace AngleSharp.Js.Tests
             Assert.AreEqual("other", engine.Evaluate("otherBody['"+property+"']()").ToString());
             var ev = new BeforeUnloadEvent();
             otherDocument.DefaultView.Dispatch(ev);
-            if (property == "onbeforeunload") Assert.AreEqual("other", ev.ReturnValue);
+            if (property == "onbeforeunload")
+            {
+                Assert.AreEqual("other", ev.ReturnValue);
+            }
         }
 
         [Test]

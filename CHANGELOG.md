@@ -2,6 +2,10 @@
 
 Development fork.
 
+- Added specialized beforeunload event and handler return semantics, with owning-window body aliases.
+- Preserved handler replacement order and reported illegal constructors as TypeError.
+- Isolated inert DOMParser documents and removed worker initialization waits on its own event loop.
+
 - Fixed document availability waits across lifecycle event targets and propagated cancellation.
 
 - Added engine-creation configuration and DOM enum constants; see FORK.md.
