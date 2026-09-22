@@ -308,7 +308,7 @@ namespace AngleSharp.Js.Cache
         }
 
         private void SetEvent(String name, MethodInfo adder, MethodInfo remover) =>
-            Define(name, new EventMember(new DomEventDefinition(adder, remover)));
+            Define(name, new EventMember(new DomEventDefinition(name, adder, remover)));
 
         private void SetProperty(String name, MethodInfo getter, MethodInfo setter, DomPutForwardsAttribute putsForward, Boolean sameObject = false) =>
             Define(name, new PropertyMember(getter, setter, putsForward, sameObject));

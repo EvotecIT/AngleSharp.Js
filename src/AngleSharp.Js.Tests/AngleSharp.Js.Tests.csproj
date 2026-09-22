@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AngleSharp.Js\AngleSharp.Js.csproj" />
+    <ProjectReference Include="$(AngleSharpTestProject)" Condition="'$(AngleSharpTestProject)' != ''" />
   </ItemGroup>
 
   <ItemGroup>

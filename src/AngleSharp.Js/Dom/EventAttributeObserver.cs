@@ -19,7 +19,16 @@ namespace AngleSharp.Js.Dom
             _observers = new Dictionary<String, Action<IElement, String>>();
             RegisterEventCallback<IHtmlBodyElement>(EventNames.AfterPrint);
             RegisterEventCallback<IHtmlBodyElement>(EventNames.BeforePrint);
-            RegisterEventCallback<IHtmlBodyElement>(EventNames.Unloading);
+            _observers.Add("onbeforeunload", (element, value) =>
+            {
+                if (element is IHtmlBodyElement)
+                {
+                    var engine = _service.GetOrCreateInstance(element.Owner);
+                    JsValue handler = value == null ? JsValue.Null : engine.Jint.Intrinsics.Function.Construct(
+                        new JsValue[] { "event", value }, JsValue.Undefined);
+                    engine.GetDomNode(element).Set("onbeforeunload", handler);
+                }
+            });
             RegisterEventCallback<IHtmlBodyElement>(EventNames.HashChange);
             RegisterEventCallback<IHtmlBodyElement>(EventNames.Message);
             RegisterEventCallback<IHtmlBodyElement>(EventNames.Offline);

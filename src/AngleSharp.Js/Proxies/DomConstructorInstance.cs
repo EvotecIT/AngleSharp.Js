@@ -119,7 +119,7 @@ namespace AngleSharp.Js
         {
             if (_constructor == null)
             {
-                throw new JavaScriptException("Illegal constructor.");
+                throw new JavaScriptException(_instance.Jint.Intrinsics.TypeError, "Illegal constructor.");
             }
 
             try

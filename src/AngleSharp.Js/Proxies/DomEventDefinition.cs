@@ -1,6 +1,8 @@
 namespace AngleSharp.Js
 {
     using AngleSharp.Dom;
+    using AngleSharp.Html.Dom;
+    using AngleSharp.Js.Dom;
     using Jint;
     using Jint.Native;
     using Jint.Native.Function;
@@ -20,30 +22,66 @@ namespace AngleSharp.Js
     /// </remarks>
     sealed class DomEventDefinition
     {
+        private readonly String _name;
         private readonly MethodInfo _addHandler;
         private readonly MethodInfo _removeHandler;
 
-        public DomEventDefinition(MethodInfo addHandler, MethodInfo removeHandler)
+        public DomEventDefinition(String name, MethodInfo addHandler, MethodInfo removeHandler)
         {
+            _name = name;
             _addHandler = addHandler;
             _removeHandler = removeHandler;
         }
 
+        private static DomNodeInstance GetNode(JsValue receiver)
+        {
+            if (receiver is DomNodeInstance node)
+            {
+                return node;
+            }
+
+            var instance = receiver.GetEngineInstance();
+            return instance != null && ReferenceEquals(receiver, instance.Jint.Global)
+                ? instance.Window
+                : null;
+        }
+
         public JsValue GetHandler(JsValue thisObject, JsValue[] arguments)
         {
-            var node = thisObject.As<DomNodeInstance>();
+            var node = GetNode(thisObject);
+            if (_name == "onbeforeunload" && node?.Value is IHtmlBodyElement body)
+            {
+                return body.Owner?.DefaultView?.Document == body.Owner
+                    ? node.Instance.Window.Get(_name)
+                    : JsValue.Null;
+            }
             var registration = node?.GetEventHandler(this);
             return registration?.Function ?? JsValue.Null;
         }
 
         public JsValue SetHandler(JsValue thisObject, JsValue[] arguments)
         {
-            var node = thisObject.As<DomNodeInstance>();
+            var node = GetNode(thisObject);
             var value = arguments.Length > 0 ? arguments[0] : JsValue.Undefined;
+
+            if (_name == "onbeforeunload" && node?.Value is IHtmlBodyElement body)
+            {
+                if (body.Owner?.DefaultView?.Document == body.Owner)
+                {
+                    node.Instance.Window.Set(_name, value);
+                }
+                return value;
+            }
 
             if (node != null)
             {
-                var previous = node.RemoveEventHandler(this);
+                var previous = node.GetEventHandler(this);
+                if (previous != null && value is Function replacement)
+                {
+                    previous.Function = replacement;
+                    return value;
+                }
+                node.RemoveEventHandler(this);
 
                 if (previous != null)
                 {
@@ -54,14 +92,20 @@ namespace AngleSharp.Js
                 {
                     var engine = node.Instance;
 
+                    Registration registration = null;
                     DomEventHandler handler = (s, ev) =>
                     {
                         var sender = s.ToJsValue(engine);
                         var args = ev.ToJsValue(engine);
-                        function.Call(sender, new[] { args });
+                        var result = registration.Function.Call(sender, new[] { args });
+                        if (_name == "onbeforeunload")
+                        {
+                            BeforeUnloadEvent.ApplyHandlerResult(ev, result);
+                        }
                     };
 
-                    node.SetEventHandler(this, new Registration(function, handler));
+                    registration = new Registration(function, handler);
+                    node.SetEventHandler(this, registration);
                     _addHandler?.Invoke(node.Value, new Object[] { handler });
                 }
             }
@@ -83,7 +127,7 @@ namespace AngleSharp.Js
             /// <summary>
             /// The function that was assigned, as it has to be handed back on read.
             /// </summary>
-            public Function Function { get; }
+            public Function Function { get; set; }
 
             /// <summary>
             /// The listener that was subscribed, as it has to be handed back on removal.
