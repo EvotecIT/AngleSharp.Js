@@ -10,6 +10,9 @@ prototypes. DOM nodes preserve their identity through `SameObject` properties.
 NodeList iterable methods live on its prototype, and HTMLCollection retains its
 separate collection contract.
 
+The canonical identity correction was merged upstream in
+[AngleSharp.Js #141](https://github.com/AngleSharp/AngleSharp.Js/pull/141).
+
 Module loading, import maps, resource policy, and runtime orchestration belong to
 OfficeIMO. They do not belong in this binding layer.
 
@@ -35,8 +38,9 @@ nullable-string result contract for `onbeforeunload`. Body properties and inline
 attributes share the window handler; replacing a handler keeps its listener order.
 Navigation decisions and confirmation UI belong to the host.
 
-The native window subscription requires the AngleSharp core correction that maps
-`EventNames.Unloading` to `beforeunload`. Qualify this combined contract with the
+The native window subscription requires the AngleSharp core correction that uses
+`EventNames.BeforeUnload`, tracked in [AngleSharp #1354](https://github.com/AngleSharp/AngleSharp/pull/1354).
+Qualify this combined contract with the
 core fork source, including when its correction is not in the official package:
 
 ```sh
