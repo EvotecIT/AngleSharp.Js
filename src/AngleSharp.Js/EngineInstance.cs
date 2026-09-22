@@ -123,6 +123,13 @@ namespace AngleSharp.Js
                     return JsValue.Null;
                 }
 
+                // Nodes and windows already have identity across every DOM access path.
+                // A property-local wrapper would make record.target !== the observed node.
+                if (current is INode || current is IWindow)
+                {
+                    return GetDomNode(current);
+                }
+
                 var cache = _sameObjects.GetValue(owner, _ => new SameObjectCache());
                 return cache.GetOrUpdate(getter, current, () => CreateInstance(current, getter.ReturnType));
             }

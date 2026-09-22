@@ -10,6 +10,22 @@ namespace AngleSharp.Js.Tests
     public class EngineConfigurationTests
     {
         [Test]
+        public async Task SameObjectMutationTargetRetainsTheObservedNodeIdentity()
+        {
+            using var context = BrowsingContext.New(Configuration.Default.WithJs());
+            var document = await context.OpenAsync(response => response.Content("<body>test</body>")).ConfigureAwait(false);
+            IMutationRecord record = null;
+            var observer = new MutationObserver((records, _) => record = records[0]);
+            observer.Connect(document.Body, attributes: true);
+            document.Body.SetAttribute("data-value", "changed");
+            Assert.IsNotNull(record);
+            var engine = context.GetService<JsScriptingService>().GetOrCreateJint(document);
+            engine.SetValue("observedRecord", record);
+            Assert.IsTrue(engine.Evaluate("observedRecord.target === document.body").AsBoolean());
+            observer.Disconnect();
+        }
+
+        [Test]
         public async Task ConfigurationRunsOnceForTheWindowAndUsesTheOptionsSnapshot()
         {
             var calls = 0;
