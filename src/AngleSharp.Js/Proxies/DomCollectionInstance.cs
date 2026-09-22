@@ -1,5 +1,6 @@
 namespace AngleSharp.Js
 {
+    using AngleSharp.Dom;
     using AngleSharp.Js.Cache;
     using Jint;
     using Jint.Native;
@@ -49,7 +50,7 @@ namespace AngleSharp.Js
                 engine.Jint.Intrinsics.Array.PrototypeObject.Get(GlobalSymbolRegistry.Iterator),
                 true, false, true));
 
-            if (IsIterable(type))
+            if (IsIterable(type) && !typeof(INodeList).IsAssignableFrom(type) && !IsHtmlCollection(type))
             {
                 var arrayPrototype = engine.Jint.Intrinsics.Array.PrototypeObject;
                 FastSetProperty("entries", new PropertyDescriptor(arrayPrototype.Get("entries"), true, false, true));
@@ -151,6 +152,24 @@ namespace AngleSharp.Js
             return false;
         }
 
+        private static Boolean IsHtmlCollection(Type type)
+        {
+            if (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(IHtmlCollection<>))
+            {
+                return true;
+            }
+
+            foreach (var contract in type.GetTypeInfo().ImplementedInterfaces)
+            {
+                if (contract.GetTypeInfo().IsGenericType && contract.GetGenericTypeDefinition() == typeof(IHtmlCollection<>))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Named entries - "document.forms.login", "el.attributes.title" - are the one thing a
         /// collection answers that the array-like model knows nothing about.
@@ -174,7 +193,7 @@ namespace AngleSharp.Js
             //  indexer must not be asked about one. WebIDL says the same: an object supporting
             //  indexed properties never serves an array-index name from its named getter. An
             //  element whose id is "5" is findable through a non-index name, never through 5.
-            if (IsArrayIndexName(property))
+            if (typeof(INodeList).IsAssignableFrom(_type) || IsArrayIndexName(property))
             {
                 return PropertyDescriptor.Undefined;
             }

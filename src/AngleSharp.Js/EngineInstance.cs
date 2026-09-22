@@ -9,6 +9,7 @@ namespace AngleSharp.Js
     using Jint.Native.Json;
     using Jint.Native.Object;
     using Jint.Runtime;
+    using Jint.Runtime.Descriptors;
     using Jint.Runtime.Interop;
     using System;
     using System.Collections.Generic;
@@ -280,6 +281,15 @@ namespace AngleSharp.Js
         {
             var shape = DomShapeCache.GetOrCreate(type, _libs, _engine);
             var prototype = shape.Shape.Instantiate(_engine, GetParentPrototype(type, shape.BaseType));
+            if (typeof(INodeList).IsAssignableFrom(type))
+            {
+                foreach (var name in new[] { "entries", "forEach", "keys", "values" })
+                {
+                    prototype.FastSetProperty(name, new PropertyDescriptor(
+                        _engine.Intrinsics.Array.PrototypeObject.Get(name), true, false, true));
+                }
+            }
+
             JsObjectShape.SetHostState(prototype, new DomPrototypeState(this, prototype, shape));
             return prototype;
         }

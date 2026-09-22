@@ -10,6 +10,13 @@ namespace AngleSharp.Js.Tests
     public class EngineConfigurationTests
     {
         [Test]
+        public async Task NodeListIterableMethodsBelongToItsPrototypeAndNotHtmlCollections()
+        {
+            var result = await "(function(){var nodes=document.querySelectorAll('script');return (nodes instanceof NodeList)+','+typeof NodeList.prototype.forEach+','+typeof nodes.namedItem+','+typeof document.children.forEach;})()".EvalScriptAsync().ConfigureAwait(false);
+            Assert.AreEqual("true,function,undefined,undefined", result);
+        }
+
+        [Test]
         public async Task SameObjectMutationTargetRetainsTheObservedNodeIdentity()
         {
             using var context = BrowsingContext.New(Configuration.Default.WithJs());
