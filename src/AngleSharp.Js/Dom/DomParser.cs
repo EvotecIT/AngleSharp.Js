@@ -63,6 +63,7 @@ namespace AngleSharp.Js.Dom
                 {
                     var task = factory.CreateAsync(ctx, new CreateDocumentOptions(response), default);
                     var document = task.Result;
+                    ctx.Active = null;
                     return document;
                 }
                 catch (Exception ex)

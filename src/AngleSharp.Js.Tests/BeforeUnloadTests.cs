@@ -92,6 +92,28 @@ namespace AngleSharp.Js.Tests
             Assert.IsTrue(engine.Evaluate("window.onbeforeunload===null").AsBoolean());
         }
 
+        [TestCase("onbeforeunload")]
+        [TestCase("onload")]
+        public async Task BodyHandlersUseTheirOwningActiveWindow(string property)
+        {
+            using var context = BrowsingContext.New(Configuration.Default.WithJs());
+            var document = await context.OpenAsync(r => r.Content("<body></body>")).ConfigureAwait(false);
+            using var otherContext = BrowsingContext.New(Configuration.Default.WithJs());
+            var otherDocument = await otherContext.OpenAsync(r => r.Content("<body></body>")).ConfigureAwait(false);
+            var engine = context.GetService<JsScriptingService>().GetOrCreateJint(document);
+            engine.SetValue("otherBody", otherDocument.Body);
+            engine.Execute("window.original=()=> 'active';window['"+property+"']=window.original;" +
+                "window.parsed=new DOMParser().parseFromString('<body></body>','text/html');" +
+                "window.parsed.body['"+property+"']=()=> 'inert';" +
+                "otherBody['"+property+"']=()=> 'other';");
+            Assert.IsTrue(engine.Evaluate("window['"+property+"']===window.original").AsBoolean());
+            Assert.IsTrue(engine.Evaluate("window.parsed.body['"+property+"']===null").AsBoolean());
+            Assert.AreEqual("other", engine.Evaluate("otherBody['"+property+"']()").ToString());
+            var ev = new BeforeUnloadEvent();
+            otherDocument.DefaultView.Dispatch(ev);
+            if (property == "onbeforeunload") Assert.AreEqual("other", ev.ReturnValue);
+        }
+
         [Test]
         public async Task SyntheticOrdinaryEventDoesNotAcquireBeforeUnloadCancellation()
         {

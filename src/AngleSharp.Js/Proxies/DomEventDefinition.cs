@@ -51,8 +51,8 @@ namespace AngleSharp.Js
             var node = GetNode(thisObject);
             if ((_name == "onbeforeunload" || _name == "onload") && node?.Value is IHtmlBodyElement body)
             {
-                return body.Owner?.DefaultView?.Document == body.Owner
-                    ? node.Instance.Window.Get(_name)
+                return body.Owner != null && ReferenceEquals(body.Owner.Context.Active, body.Owner)
+                    ? node.Instance.GetDomNode(body.Owner.DefaultView).Get(_name)
                     : JsValue.Null;
             }
             var registration = node?.GetEventHandler(this);
@@ -66,9 +66,9 @@ namespace AngleSharp.Js
 
             if ((_name == "onbeforeunload" || _name == "onload") && node?.Value is IHtmlBodyElement body)
             {
-                if (body.Owner?.DefaultView?.Document == body.Owner)
+                if (body.Owner != null && ReferenceEquals(body.Owner.Context.Active, body.Owner))
                 {
-                    node.Instance.Window.Set(_name, value);
+                    node.Instance.GetDomNode(body.Owner.DefaultView).Set(_name, value);
                 }
                 return value;
             }
