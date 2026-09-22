@@ -262,6 +262,11 @@ namespace AngleSharp.Js
 
         private ObjectInstance CreateInstance(Object obj, Type type)
         {
+            if (obj is IStringMap map)
+            {
+                return new DomStringMapInstance(this, map, type);
+            }
+
             var collection = type.GetIndexedCollection();
 
             if (collection != null)

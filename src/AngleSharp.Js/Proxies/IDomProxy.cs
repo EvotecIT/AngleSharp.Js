@@ -6,7 +6,7 @@ namespace AngleSharp.Js
     /// A JS object standing for one CLR DOM object.
     /// </summary>
     /// <remarks>
-    /// There are two of them and they cannot share a base class: an indexed collection derives
+    /// The proxies cannot share a base class: an indexed collection derives
     /// from Jint's array-like base so that the engine knows how to read it, everything else from
     /// the ordinary object base. What every caller outside the proxies needs is the same either
     /// way - the CLR object behind the proxy - so that is what they agree on.
