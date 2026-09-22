@@ -15,11 +15,10 @@ OfficeIMO. They do not belong in this binding layer.
 
 ```sh
 dotnet build src/AngleSharp.Js/AngleSharp.Js.csproj -f net10.0
-dotnet test src/AngleSharp.Js.Tests/AngleSharp.Js.Tests.csproj -f net10.0
 ```
 
-Qualify the standalone binding tests and the consuming runtime before updating an
-OfficeIMO revision pin. Fork builds are not official AngleSharp.Js releases.
+Qualify the combined binding tests below and the consuming runtime before updating
+an OfficeIMO revision pin. Fork builds are not official AngleSharp.Js releases.
 Do not publish packages under upstream package identities.
 
 Document availability follows `readystatechange` rather than relying on a document
@@ -28,10 +27,8 @@ and cancellation applies to document creation, readiness, and stabilization wait
 
 `DOMStringMap` has a dedicated live named-property binding: enumerable data
 properties, deletion, inherited-name overrides, JavaScript value conversion and
-DOM exception translation. Symbols remain ordinary properties. The standalone
-suite qualifies binding behavior against the official AngleSharp dependency;
-camel-case conversion and invalid attribute names additionally require the
-AngleSharp core fork and are qualified by OfficeIMO's `RuntimeDatasetTests`.
+DOM exception translation. Symbols remain ordinary properties. Camel-case conversion and invalid attribute names require the AngleSharp core
+fork and are also qualified by OfficeIMO's `RuntimeDatasetTests`.
 
 `BeforeUnloadEvent` supplies the legacy string `returnValue` and the specialized
 nullable-string result contract for `onbeforeunload`. Body properties and inline
