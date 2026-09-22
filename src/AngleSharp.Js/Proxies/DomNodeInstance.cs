@@ -61,7 +61,23 @@ namespace AngleSharp.Js
 
         public EngineInstance Instance => _instance;
 
-        public void Update(Object value) => _value = value;
+        public void Update(Object value)
+        {
+            if (!ReferenceEquals(_value, value) && _eventHandlers?.Count > 0)
+            {
+                if (_value is EventTarget previous)
+                {
+                    previous.EventListenerRemoved -= OnEventListenerRemoved;
+                }
+
+                if (value is EventTarget current)
+                {
+                    current.EventListenerRemoved += OnEventListenerRemoved;
+                }
+            }
+
+            _value = value;
+        }
 
         public override object ToObject() => _value;
 
@@ -86,6 +102,10 @@ namespace AngleSharp.Js
         public void SetEventHandler(DomEventDefinition ev, DomEventDefinition.Registration registration)
         {
             _eventHandlers = _eventHandlers ?? new Dictionary<DomEventDefinition, DomEventDefinition.Registration>();
+            if (_eventHandlers.Count == 0 && _value is EventTarget target)
+            {
+                target.EventListenerRemoved += OnEventListenerRemoved;
+            }
             _eventHandlers[ev] = registration;
         }
 
@@ -97,10 +117,31 @@ namespace AngleSharp.Js
             if (_eventHandlers != null && _eventHandlers.TryGetValue(ev, out var registration))
             {
                 _eventHandlers.Remove(ev);
+                if (_eventHandlers.Count == 0 && _value is EventTarget target)
+                {
+                    target.EventListenerRemoved -= OnEventListenerRemoved;
+                }
                 return registration;
             }
 
             return null;
+        }
+
+        private void OnEventListenerRemoved(String type, DomEventHandler handler, Boolean capture)
+        {
+            if (_eventHandlers == null || capture)
+            {
+                return;
+            }
+
+            foreach (var entry in _eventHandlers)
+            {
+                if (ReferenceEquals(entry.Value.Handler, handler))
+                {
+                    RemoveEventHandler(entry.Key);
+                    break;
+                }
+            }
         }
 
         public override PropertyDescriptor GetOwnProperty(JsValue property)

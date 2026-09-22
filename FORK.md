@@ -16,8 +16,14 @@ The canonical identity correction was merged upstream in
 Module loading, import maps, resource policy, and runtime orchestration belong to
 OfficeIMO. They do not belong in this binding layer.
 
+The current integration branch uses `EventTarget.EventListenerRemoved` to clear
+script handler properties after native removal. Build it with the matching
+AngleSharp fork source. A sibling `AngleSharp` checkout is selected automatically;
+an isolated checkout needs an explicit source project:
+
 ```sh
-dotnet build src/AngleSharp.Js/AngleSharp.Js.csproj -f net10.0
+dotnet build src/AngleSharp.Js/AngleSharp.Js.csproj -f net10.0 \
+  -p:AngleSharpTestProject=/path/to/AngleSharp/src/AngleSharp/AngleSharp.Core.csproj
 ```
 
 Qualify the combined binding tests below and the consuming runtime before updating
@@ -48,10 +54,12 @@ dotnet test src/AngleSharp.Js.Tests/AngleSharp.Js.Tests.csproj -f net10.0 \
   -p:AngleSharpTestProject=/path/to/AngleSharp/src/AngleSharp/AngleSharp.Core.csproj
 ```
 
-Without that source reference, the configured official AngleSharp 1.8.0 package's event-name defect
-still fails the new window `beforeunload` integration tests. The JS library itself
-continues to compile against the official core API; no host workaround changes
-the native subscription name.
+Without that source reference, the configured official AngleSharp 1.8.0 package
+lacks `EventTarget.EventListenerRemoved`, so this integration branch cannot build
+standalone or publish a usable package against that dependency. Its package lane
+must be qualified after a compatible AngleSharp release or an explicitly pinned
+source-based fork package; do not represent the current source build as a package
+qualification.
 
 HTML `DOMParser` documents use an inert context without the active script engine,
 event loop, or inline-handler observers. Worker realm setup parses its backing
