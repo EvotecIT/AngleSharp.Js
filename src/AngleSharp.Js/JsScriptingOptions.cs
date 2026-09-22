@@ -7,6 +7,9 @@ namespace AngleSharp.Js
     /// </summary>
     public sealed class JsScriptingOptions
     {
+        /// <summary>Configures host services before the interpreter is created for a window.</summary>
+        public Action<AngleSharp.Dom.IWindow, Jint.Options> ConfigureEngine { get; set; }
+
         /// <summary>
         /// Gets or sets the JavaScript call stack depth that has to be supported
         /// before the engine gives up with a "Maximum call stack size exceeded"
@@ -23,6 +26,7 @@ namespace AngleSharp.Js
         internal JsScriptingOptions Clone() => new JsScriptingOptions
         {
             MaxCallStackDepth = MaxCallStackDepth,
+            ConfigureEngine = ConfigureEngine,
         };
     }
 }

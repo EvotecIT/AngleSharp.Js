@@ -1,3 +1,9 @@
+# 1.1.0-evotec.1
+
+Development fork.
+
+- Added engine-creation configuration and DOM enum constants; see FORK.md.
+
 # 1.1.0
 
 Released on Saturday, September 5 2026.

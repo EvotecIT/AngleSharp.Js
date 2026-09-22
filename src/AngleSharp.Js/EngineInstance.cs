@@ -51,6 +51,7 @@ namespace AngleSharp.Js
                 //  cannot be caught. Guarded, the engine continues on a fresh stack and finally
                 //  reports an ordinary "Maximum call stack size exceeded" error instead.
                 o.Constraints.MaxExecutionStackCount = options.MaxCallStackDepth > 0 ? options.MaxCallStackDepth : StackGuardDisabled;
+                options.ConfigureEngine?.Invoke(window, o);
             });
             _libs = new LibrarySet(libs);
             _prototypes = new PrototypeCache(_engine, _libs);
