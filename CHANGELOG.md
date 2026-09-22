@@ -6,6 +6,7 @@ Released on Saturday, September 5 2026.
 - Added support for the `DomReturnType` attribute
 - Added support for the `DomSameObject` attribute
 - Added iterable integration for `IEnumerable<T>` instances
+- Unreleased fix: preserve canonical DOM node identity and concrete prototypes through `DomSameObject` getters (#140)
 
 # 1.0.1
 
