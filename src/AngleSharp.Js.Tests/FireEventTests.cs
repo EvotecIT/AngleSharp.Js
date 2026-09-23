@@ -133,6 +133,24 @@ document.dispatchEvent(new MouseEvent('click'));
         }
 
         [Test]
+        public async Task NativeListenerResetPreservesHandlerAssignedByEarlierResetSubscriber()
+        {
+            var service = new JsScriptingService();
+            var cfg = Configuration.Default.With(service).WithEventLoop();
+            var document = await BrowsingContext.New(cfg).OpenAsync(m => m.Content("<button>Click</button>"));
+            var engine = service.GetOrCreateJint(document);
+            var button = (EventTarget)document.QuerySelector("button");
+            button.OnReset += (_, _) => engine.Execute("button.onclick=()=>calls+=100");
+            engine.Execute("var button=document.querySelector('button');var calls=0;button.onclick=()=>calls++");
+
+            button.RemoveEventListeners();
+            engine.Execute("button.dispatchEvent(new MouseEvent('click'))");
+
+            Assert.IsTrue(engine.Evaluate("button.onclick!==null").AsBoolean());
+            Assert.AreEqual(100.0, engine.GetValue("calls").AsNumber());
+        }
+
+        [Test]
         public async Task AddAndInvokeClickHandlerWillChangeCapturedValue()
         {
             var service = new JsScriptingService();

@@ -90,6 +90,11 @@ namespace AngleSharp.Js
         {
             if (_eventHandlers != null && _eventHandlers.TryGetValue(ev, out var registration))
             {
+                if (_value is EventTarget target && registration.ResetVersion != target.ListenerResetVersion)
+                {
+                    RemoveEventHandler(ev);
+                    return null;
+                }
                 return registration;
             }
 
@@ -129,13 +134,23 @@ namespace AngleSharp.Js
 
         private void OnReset(Object sender, EventArgs args)
         {
-            if (!ReferenceEquals(sender, _value))
+            if (!ReferenceEquals(sender, _value) || sender is not EventTarget target || _eventHandlers == null)
             {
                 return;
             }
 
-            _eventHandlers?.Clear();
-            ((EventTarget)sender).OnReset -= OnReset;
+            var stale = new List<DomEventDefinition>();
+            foreach (var entry in _eventHandlers)
+            {
+                if (entry.Value.ResetVersion != target.ListenerResetVersion)
+                {
+                    stale.Add(entry.Key);
+                }
+            }
+            foreach (var key in stale)
+            {
+                RemoveEventHandler(key);
+            }
         }
 
         public override PropertyDescriptor GetOwnProperty(JsValue property)
