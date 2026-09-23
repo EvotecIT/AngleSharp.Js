@@ -67,12 +67,12 @@ namespace AngleSharp.Js
             {
                 if (_value is EventTarget previous)
                 {
-                    previous.EventListenerRemoved -= OnEventListenerRemoved;
+                    previous.OnReset -= OnReset;
                 }
 
                 if (value is EventTarget current)
                 {
-                    current.EventListenerRemoved += OnEventListenerRemoved;
+                    current.OnReset += OnReset;
                 }
             }
 
@@ -104,7 +104,7 @@ namespace AngleSharp.Js
             _eventHandlers = _eventHandlers ?? new Dictionary<DomEventDefinition, DomEventDefinition.Registration>();
             if (_eventHandlers.Count == 0 && _value is EventTarget target)
             {
-                target.EventListenerRemoved += OnEventListenerRemoved;
+                target.OnReset += OnReset;
             }
             _eventHandlers[ev] = registration;
         }
@@ -119,7 +119,7 @@ namespace AngleSharp.Js
                 _eventHandlers.Remove(ev);
                 if (_eventHandlers.Count == 0 && _value is EventTarget target)
                 {
-                    target.EventListenerRemoved -= OnEventListenerRemoved;
+                    target.OnReset -= OnReset;
                 }
                 return registration;
             }
@@ -127,21 +127,15 @@ namespace AngleSharp.Js
             return null;
         }
 
-        private void OnEventListenerRemoved(String type, DomEventHandler handler, Boolean capture)
+        private void OnReset(Object sender, EventArgs args)
         {
-            if (_eventHandlers == null || capture)
+            if (!ReferenceEquals(sender, _value))
             {
                 return;
             }
 
-            foreach (var entry in _eventHandlers)
-            {
-                if (ReferenceEquals(entry.Value.Handler, handler))
-                {
-                    RemoveEventHandler(entry.Key);
-                    break;
-                }
-            }
+            _eventHandlers?.Clear();
+            ((EventTarget)sender).OnReset -= OnReset;
         }
 
         public override PropertyDescriptor GetOwnProperty(JsValue property)
