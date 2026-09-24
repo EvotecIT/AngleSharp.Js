@@ -90,11 +90,6 @@ namespace AngleSharp.Js
         {
             if (_eventHandlers != null && _eventHandlers.TryGetValue(ev, out var registration))
             {
-                if (_value is EventTarget target && registration.ResetVersion != target.ListenerResetVersion)
-                {
-                    RemoveEventHandler(ev);
-                    return null;
-                }
                 return registration;
             }
 
@@ -134,20 +129,13 @@ namespace AngleSharp.Js
 
         private void OnReset(Object sender, EventArgs args)
         {
-            if (!ReferenceEquals(sender, _value) || sender is not EventTarget target || _eventHandlers == null)
+            if (!ReferenceEquals(sender, _value) || _eventHandlers == null)
             {
                 return;
             }
 
-            var stale = new List<DomEventDefinition>();
-            foreach (var entry in _eventHandlers)
-            {
-                if (entry.Value.ResetVersion != target.ListenerResetVersion)
-                {
-                    stale.Add(entry.Key);
-                }
-            }
-            foreach (var key in stale)
+            var keys = new List<DomEventDefinition>(_eventHandlers.Keys);
+            foreach (var key in keys)
             {
                 RemoveEventHandler(key);
             }

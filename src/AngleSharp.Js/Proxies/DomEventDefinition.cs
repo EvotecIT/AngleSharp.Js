@@ -104,8 +104,7 @@ namespace AngleSharp.Js
                         }
                     };
 
-                    registration = new Registration(function, handler,
-                        (node.Value as EventTarget)?.ListenerResetVersion ?? 0L);
+                    registration = new Registration(function, handler);
                     node.SetEventHandler(this, registration);
                     _addHandler?.Invoke(node.Value, new Object[] { handler });
                 }
@@ -119,11 +118,10 @@ namespace AngleSharp.Js
         /// </summary>
         public sealed class Registration
         {
-            public Registration(Function function, DomEventHandler handler, Int64 resetVersion)
+            public Registration(Function function, DomEventHandler handler)
             {
                 Function = function;
                 Handler = handler;
-                ResetVersion = resetVersion;
             }
 
             /// <summary>
@@ -136,7 +134,6 @@ namespace AngleSharp.Js
             /// </summary>
             public DomEventHandler Handler { get; }
 
-            public Int64 ResetVersion { get; }
         }
     }
 }
